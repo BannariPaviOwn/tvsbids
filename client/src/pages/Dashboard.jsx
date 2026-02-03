@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getDashboardStats, getBidStats, getMatches } from '../api';
 import { TeamsModal } from '../components/TeamsModal';
-import { MatchReminderBanner } from '../components/MatchReminderBanner';
+import { TodaySummary } from '../components/TodaySummary';
+import { getSampleMatches } from '../utils/sampleMatches';
 
 export function Dashboard() {
   const { user, logout } = useAuth();
@@ -18,12 +19,12 @@ export function Dashboard() {
       .then(([s, b, m]) => {
         setStats(s);
         setBidStats(b);
-        setMatches(m || []);
+        setMatches(m?.length > 0 ? m : getSampleMatches());
       })
       .catch(() => {
         setStats({ total_matches: 0, wins: 0, losses: 0, pending: 0 });
         setBidStats({ league_remaining: 30, league_limit: 30, semi_remaining: 2, semi_limit: 2, final_remaining: 1, final_limit: 1 });
-        setMatches([]);
+        setMatches(getSampleMatches());
       })
       .finally(() => setLoading(false));
   }, []);
@@ -31,7 +32,7 @@ export function Dashboard() {
   return (
     <div className="dashboard-page">
       <header className="dashboard-header">
-        <h1>Cricket Bid Browser</h1>
+        <h1>TVS-Bids</h1>
         <div className="header-actions">
           <span className="username">{user?.username}</span>
           <button onClick={logout} className="btn-logout">Logout</button>
@@ -41,10 +42,11 @@ export function Dashboard() {
       <nav className="main-nav">
         <Link to="/" className="nav-link active">Dashboard</Link>
         <Link to="/matches" className="nav-link">Matches</Link>
+        <Link to="/leaderboard" className="nav-link">Leaderboard</Link>
         <button className="nav-link" onClick={() => setShowTeams(true)}>Teams</button>
       </nav>
 
-      {!loading && matches.length > 0 && <MatchReminderBanner matches={matches} />}
+      {!loading && matches.length > 0 && <TodaySummary matches={matches} />}
 
       {loading ? (
         <p className="loading">Loading...</p>

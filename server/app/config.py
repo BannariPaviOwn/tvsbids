@@ -11,6 +11,13 @@ class Settings(BaseSettings):
     BID_LIMIT_SEMI: int = 2
     BID_LIMIT_FINAL: int = 1
 
+    # Admin usernames (comma-separated in env, or default "admin")
+    ADMIN_USERNAMES: str = "admin"
+
+    @property
+    def admin_usernames_list(self) -> list[str]:
+        return [u.strip().lower() for u in self.ADMIN_USERNAMES.split(",") if u.strip()]
+
     class Config:
         env_file = ".env"
 

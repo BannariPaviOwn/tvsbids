@@ -1,4 +1,4 @@
-# Cricket Bid Browser
+# TVS-Bids
 
 A web app where users bid on cricket match outcomes. Select your team before the match starts—once it begins, bidding is locked.
 

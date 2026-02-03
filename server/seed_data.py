@@ -1,10 +1,18 @@
-"""Seed teams and sample matches. Run: python -m seed_data"""
+"""Seed teams, sample matches, and leaderboard players. Run: python -m seed_data"""
 from datetime import datetime, timedelta
 from app.database import SessionLocal, engine
-from app.models import Base, Team, Match
+from app.models import Base, Team, Match, User
+from app.auth import get_password_hash
 
 Base.metadata.create_all(bind=engine)
 db = SessionLocal()
+
+# Leaderboard players (default password: bid123)
+LEADERBOARD_USERS = ["pavi", "simbu", "sax", "ks", "nimie", "nikhil", "ranjith"]
+for uname in LEADERBOARD_USERS:
+    if not db.query(User).filter(User.username == uname).first():
+        db.add(User(username=uname, hashed_password=get_password_hash("bid123")))
+db.commit()
 
 # Teams
 teams_data = [

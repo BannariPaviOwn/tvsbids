@@ -56,6 +56,12 @@ export async function getBidStats() {
   return res.json();
 }
 
+export async function getMe() {
+  const res = await fetch(`${API_BASE}/users/me`, { headers: getHeaders() });
+  if (!res.ok) throw new Error('Failed to fetch user');
+  return res.json();
+}
+
 export async function getDashboardStats() {
   const res = await fetch(`${API_BASE}/users/dashboard-stats`, { headers: getHeaders() });
   if (!res.ok) throw new Error('Failed to fetch dashboard stats');
@@ -90,5 +96,11 @@ export async function getMatchBidBreakdown(matchId) {
 export async function getTeams() {
   const res = await fetch(`${API_BASE}/matches/teams`, { headers: getHeaders() });
   if (!res.ok) throw new Error('Failed to fetch teams');
+  return res.json();
+}
+
+export async function getLeaderboard() {
+  const res = await fetch(`${API_BASE}/users/leaderboard`, { headers: getHeaders() });
+  if (!res.ok) throw new Error('Failed to fetch leaderboard');
   return res.json();
 }

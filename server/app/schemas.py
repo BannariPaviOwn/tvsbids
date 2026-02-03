@@ -24,6 +24,7 @@ class UserResponse(BaseModel):
     id: int
     username: str
     created_at: datetime
+    is_admin: bool = False
 
     class Config:
         from_attributes = True
@@ -116,3 +117,11 @@ class UserDashboardStats(BaseModel):
     wins: int
     losses: int
     pending: int  # Matches bid on but not yet completed
+
+
+class LeaderboardEntry(BaseModel):
+    rank: int
+    username: str
+    wins: int
+    losses: int
+    total: int

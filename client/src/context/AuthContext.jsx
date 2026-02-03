@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { getMe } from '../api';
 
 const AuthContext = createContext(null);
 
@@ -12,6 +13,12 @@ export function AuthProvider({ children }) {
     if (token && u) {
       try {
         setUser(JSON.parse(u));
+        getMe()
+          .then((fresh) => {
+            localStorage.setItem('user', JSON.stringify(fresh));
+            setUser(fresh);
+          })
+          .catch(() => {});
       } catch {
         localStorage.removeItem('token');
         localStorage.removeItem('user');

@@ -24,7 +24,7 @@ except Exception:
     pass  # Column may already exist
 
 app = FastAPI(
-    title="Cricket Bid Browser",
+    title="TVS-Bids",
     description="Bid on cricket match outcomes",
     version="1.0.0"
 )
@@ -45,4 +45,4 @@ app.include_router(users.router, prefix="/users", tags=["users"])
 
 @app.get("/")
 def root():
-    return {"message": "Cricket Bid Browser API", "docs": "/docs"}
+    return {"message": "TVS-Bids API", "docs": "/docs"}

@@ -5,8 +5,15 @@ from ..database import get_db
 from ..models import User
 from ..schemas import UserCreate, UserLogin, Token, UserResponse
 from ..auth import get_password_hash, create_access_token, verify_password
+from ..config import settings
 
 router = APIRouter()
+
+
+def _user_response(user: User) -> UserResponse:
+    return UserResponse.model_validate(user).model_copy(
+        update={"is_admin": user.username.lower() in settings.admin_usernames_list}
+    )
 
 
 @router.post("/register", response_model=Token)
@@ -27,7 +34,7 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     return Token(
         access_token=token,
         token_type="bearer",
-        user=UserResponse.model_validate(user)
+        user=_user_response(user)
     )
 
 
@@ -43,5 +50,5 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
     return Token(
         access_token=token,
         token_type="bearer",
-        user=UserResponse.model_validate(user)
+        user=_user_response(user)
     )

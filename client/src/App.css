@@ -1,4 +1,4 @@
-/* Cricket Bid Browser - Styles */
+/* TVS-Bids - Styles */
 :root {
   --bg: #0f1419;
   --card: #1a2332;
@@ -124,7 +124,8 @@ body {
 
 /* Dashboard & Matches pages */
 .dashboard-page,
-.matches-page {
+.matches-page,
+.leaderboard-page {
   max-width: 720px;
   margin: 0 auto;
   padding: 1.5rem;
@@ -318,41 +319,31 @@ body {
   color: var(--accent);
 }
 
-/* Match reminder banner */
-.match-reminder-banner {
+/* Today's matches summary */
+.today-summary {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.today-summary-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1rem 1.25rem;
-  background: linear-gradient(135deg, rgba(232, 185, 35, 0.2), rgba(196, 155, 30, 0.15));
-  border: 1px solid var(--accent);
-  border-radius: 10px;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.75rem;
 }
 
-.reminder-content {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex: 1;
-}
-
-.reminder-icon {
-  font-size: 1.25rem;
-}
-
-.reminder-content strong {
+.today-summary-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
   color: var(--accent);
 }
 
-.reminder-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.reminder-btn {
+.today-summary-copy {
   padding: 0.35rem 0.75rem;
   font-size: 0.8rem;
   background: var(--accent);
@@ -363,27 +354,36 @@ body {
   cursor: pointer;
 }
 
-.reminder-btn:hover {
+.today-summary-copy:hover {
   opacity: 0.9;
 }
 
-.reminder-btn.whatsapp-btn {
-  background: #25D366;
-  color: #fff;
+.today-summary-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.reminder-dismiss {
-  background: none;
-  border: none;
+.today-summary-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.95rem;
+}
+
+.today-summary-list li:last-child {
+  border-bottom: none;
+}
+
+.today-summary .match-pair {
+  font-weight: 500;
+}
+
+.today-summary .match-time {
   color: var(--text-muted);
-  font-size: 1.25rem;
-  cursor: pointer;
-  padding: 0 0.25rem;
-  line-height: 1;
-}
-
-.reminder-dismiss:hover {
-  color: var(--text);
+  font-size: 0.9rem;
 }
 
 /* Filter tabs */
@@ -417,10 +417,84 @@ body {
 }
 
 .loading,
-.no-matches {
+.no-matches,
+.no-data {
   text-align: center;
   color: var(--text-muted);
   padding: 2rem;
+}
+
+/* Leaderboard */
+.leaderboard-section {
+  margin-top: 1rem;
+}
+
+.leaderboard-section h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+  color: var(--accent);
+}
+
+.leaderboard-subtitle {
+  margin: 0 0 1.5rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.leaderboard-table {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.leaderboard-header {
+  display: grid;
+  grid-template-columns: 50px 1fr 60px 60px 60px;
+  gap: 1rem;
+  padding: 0.75rem 1.25rem;
+  background: rgba(0, 0, 0, 0.3);
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.leaderboard-row {
+  display: grid;
+  grid-template-columns: 50px 1fr 60px 60px 60px;
+  gap: 1rem;
+  padding: 0.9rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  font-size: 0.95rem;
+}
+
+.leaderboard-row:last-child {
+  border-bottom: none;
+}
+
+.leaderboard-row.current-user {
+  background: rgba(232, 185, 35, 0.12);
+  border-left: 3px solid var(--accent);
+}
+
+.leaderboard-row .col-rank {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.leaderboard-row .col-name {
+  font-weight: 500;
+}
+
+.leaderboard-row .col-wins {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.leaderboard-row .col-losses {
+  color: var(--danger);
+  font-weight: 500;
 }
 
 /* Match card */

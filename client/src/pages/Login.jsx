@@ -20,7 +20,7 @@ export function Login() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1>Cricket Bid Browser</h1>
+        <h1>TVS-Bids</h1>
         <h2>Sign in</h2>
         <form onSubmit={handleSubmit}>
           <input
