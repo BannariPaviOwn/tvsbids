@@ -43,6 +43,7 @@ export function Leaderboard() {
         <Link to="/" className="nav-link">Dashboard</Link>
         <Link to="/matches" className="nav-link">Matches</Link>
         <Link to="/leaderboard" className="nav-link active">Leaderboard</Link>
+        {user?.is_admin && <Link to="/admin" className="nav-link">Admin</Link>}
         <button className="nav-link" onClick={() => setShowTeams(true)}>Teams</button>
       </nav>
 

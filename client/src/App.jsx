@@ -5,11 +5,20 @@ import { Register } from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
 import { Matches } from './pages/Matches';
 import { Leaderboard } from './pages/Leaderboard';
+import { Admin } from './pages/Admin';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="app-loading">Loading...</div>;
   if (!user) return <Navigate to="/login" replace />;
+  return children;
+}
+
+function AdminRoute({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="app-loading">Loading...</div>;
+  if (!user) return <Navigate to="/login" replace />;
+  if (!user.is_admin) return <Navigate to="/" replace />;
   return children;
 }
 
@@ -42,6 +51,14 @@ function App() {
               <ProtectedRoute>
                 <Leaderboard />
               </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <Admin />
+              </AdminRoute>
             }
           />
           <Route path="*" element={<Navigate to="/" replace />} />

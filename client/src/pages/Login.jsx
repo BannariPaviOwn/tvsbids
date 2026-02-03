@@ -1,20 +1,36 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { login } from '../api';
 import { useAuth } from '../context/AuthContext';
 
 export function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const { login: authLogin } = useAuth();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    authLogin({
-      access_token: 'dev-token',
-      token_type: 'bearer',
-      user: { id: 1, username: username || 'guest', created_at: new Date().toISOString() },
-    });
-    window.location.href = '/';
+    setError('');
+    if (!username.trim()) {
+      setError('Username is required');
+      return;
+    }
+    if (!password) {
+      setError('Password is required');
+      return;
+    }
+    setLoading(true);
+    try {
+      const data = await login(username.trim(), password);
+      authLogin(data);
+      window.location.href = '/';
+    } catch (e) {
+      setError(e.message || 'Login failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -29,6 +45,7 @@ export function Login() {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             autoComplete="username"
+            maxLength={50}
           />
           <input
             type="password"
@@ -37,10 +54,13 @@ export function Login() {
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="current-password"
           />
-          <button type="submit">Sign in</button>
+          {error && <p className="auth-error">{error}</p>}
+          <button type="submit" disabled={loading}>
+            {loading ? 'Signing in...' : 'Sign in'}
+          </button>
         </form>
         <p className="auth-link">
-          Don't have an account? <Link to="/register">Register</Link>
+          Don&apos;t have an account? <Link to="/register">Register</Link>
         </p>
       </div>
     </div>

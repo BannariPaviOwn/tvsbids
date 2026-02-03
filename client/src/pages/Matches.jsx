@@ -11,38 +11,48 @@ export function Matches() {
   const [matches, setMatches] = useState([]);
   const [bidStats, setBidStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('all');
+  const [series, setSeries] = useState('all');  // all, ipl, worldcup
+  const [filter, setFilter] = useState('all');  // all, today
   const [showTeams, setShowTeams] = useState(false);
 
+  const fetchMatches = (seriesFilter) => {
+    const s = seriesFilter === 'all' ? null : seriesFilter;
+    return getMatches(s)
+      .then((m) => (m?.length > 0 ? m : getSampleMatches(s)))
+      .catch(() => getSampleMatches(s));
+  };
+
   useEffect(() => {
-    Promise.all([getMatches(), getBidStats()])
+    setLoading(true);
+    Promise.all([fetchMatches(series), getBidStats()])
       .then(([m, s]) => {
-        setMatches(m.length > 0 ? m : getSampleMatches());
+        setMatches(m);
         setBidStats(s);
       })
       .catch(() => {
-        setMatches(getSampleMatches());
+        setMatches(getSampleMatches(series === 'all' ? null : series));
         setBidStats({ league_remaining: 30, league_limit: 30, semi_remaining: 2, semi_limit: 2, final_remaining: 1, final_limit: 1 });
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [series]);
 
   const refresh = () => {
     setLoading(true);
-    Promise.all([getMatches(), getBidStats()])
-      .then(([m, s]) => {
-        setMatches(m.length > 0 ? m : getSampleMatches());
-        setBidStats(s);
+    const s = series === 'all' ? null : series;
+    Promise.all([fetchMatches(series), getBidStats()])
+      .then(([m, bidS]) => {
+        setMatches(m);
+        setBidStats(bidS);
       })
       .catch(() => {
-        setMatches(getSampleMatches());
+        setMatches(getSampleMatches(s));
         setBidStats({ league_remaining: 30, league_limit: 30, semi_remaining: 2, semi_limit: 2, final_remaining: 1, final_limit: 1 });
       })
       .finally(() => setLoading(false));
   };
 
-  const filtered = filter === 'today'
-    ? matches.filter((m) => m.match_date === new Date().toISOString().slice(0, 10))
+  const dateFiltered = filter === 'today'
+    ? matches.filter((m) => m.match_date === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`)
     : matches;
 
   return (
@@ -59,8 +69,34 @@ export function Matches() {
         <Link to="/" className="nav-link">Dashboard</Link>
         <Link to="/matches" className="nav-link active">Matches</Link>
         <Link to="/leaderboard" className="nav-link">Leaderboard</Link>
+        {user?.is_admin && <Link to="/admin" className="nav-link">Admin</Link>}
         <button className="nav-link" onClick={() => setShowTeams(true)}>Teams</button>
       </nav>
+
+      <div className="series-tabs">
+        <button
+          className={series === 'all' ? 'active' : ''}
+          onClick={() => setSeries('all')}
+        >
+          All
+        </button>
+        <button
+          className="series-tab-coming-soon"
+          disabled
+          title="Coming soon"
+        >
+          <span className="ipl-label">IPL</span>
+          <span className="coming-soon-badge">
+            <span className="lightning">⚡</span> Coming soon
+          </span>
+        </button>
+        <button
+          className={series === 'worldcup' ? 'active' : ''}
+          onClick={() => setSeries('worldcup')}
+        >
+          World Cup
+        </button>
+      </div>
 
       <div className="filter-tabs">
         <button
@@ -81,10 +117,10 @@ export function Matches() {
         <p className="loading">Loading matches...</p>
       ) : (
         <div className="match-list">
-          {filtered.length === 0 ? (
-            <p className="no-matches">No matches found. Add matches via API or seed data.</p>
+          {dateFiltered.length === 0 ? (
+            <p className="no-matches">No matches found{series !== 'all' ? ` for ${series}` : ''}.</p>
           ) : (
-            filtered.map((match) => (
+            dateFiltered.map((match) => (
               <MatchCard
                 key={match.id}
                 match={match}

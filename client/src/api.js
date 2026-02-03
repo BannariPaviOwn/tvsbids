@@ -20,26 +20,29 @@ export async function login(username, password) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Login failed');
+    const msg = Array.isArray(err.detail) ? err.detail[0]?.msg || err.detail[0] : err.detail;
+    throw new Error(msg || 'Login failed');
   }
   return res.json();
 }
 
-export async function register(username, password) {
+export async function register(username, password, mobileNumber) {
   const res = await fetch(`${API_BASE}/auth/register`, {
     method: 'POST',
     headers: getHeaders(),
-    body: JSON.stringify({ username, password }),
+    body: JSON.stringify({ username, password, mobile_number: mobileNumber }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || 'Registration failed');
+    const msg = Array.isArray(err.detail) ? err.detail[0]?.msg || err.detail[0] : err.detail;
+    throw new Error(msg || 'Registration failed');
   }
   return res.json();
 }
 
-export async function getMatches() {
-  const res = await fetch(`${API_BASE}/matches/`, { headers: getHeaders() });
+export async function getMatches(series) {
+  const url = series ? `${API_BASE}/matches/?series=${encodeURIComponent(series)}` : `${API_BASE}/matches/`;
+  const res = await fetch(url, { headers: getHeaders() });
   if (!res.ok) throw new Error('Failed to fetch matches');
   return res.json();
 }
@@ -102,5 +105,21 @@ export async function getTeams() {
 export async function getLeaderboard() {
   const res = await fetch(`${API_BASE}/users/leaderboard`, { headers: getHeaders() });
   if (!res.ok) throw new Error('Failed to fetch leaderboard');
+  return res.json();
+}
+
+export async function adminGetUsers() {
+  const res = await fetch(`${API_BASE}/users/admin/users`, { headers: getHeaders() });
+  if (!res.ok) throw new Error('Failed to fetch users');
+  return res.json();
+}
+
+export async function adminSetUserActive(userId, isActive) {
+  const res = await fetch(`${API_BASE}/users/admin/users/${userId}`, {
+    method: 'PATCH',
+    headers: getHeaders(),
+    body: JSON.stringify({ is_active: isActive }),
+  });
+  if (!res.ok) throw new Error('Failed to update user');
   return res.json();
 }

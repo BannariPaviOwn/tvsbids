@@ -37,23 +37,26 @@ export function TeamsModal({ onClose }) {
   const modal = (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content teams-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3>Teams</h3>
+        <div className="teams-modal-header">
+          <h3>All Teams</h3>
+          <p className="teams-modal-subtitle">Cricket teams in TVS-Bids</p>
           <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
         </div>
-        <div className="modal-body">
+        <div className="teams-modal-body">
           {loading ? (
             <p className="modal-loading">Loading...</p>
           ) : (
-            <ul className="teams-list">
+            <div className="teams-grid">
               {displayTeams.map((team) => (
-                <li key={team.id} className="team-item">
+                <div key={team.id} className="team-card">
                   <img src={getTeamFlagUrl(team.short_name)} alt="" className="team-flag" />
-                  <span className="team-code">{team.short_name}</span>
-                  <span className="team-name">{team.name}</span>
-                </li>
+                  <div className="team-info">
+                    <span className="team-code">{team.short_name}</span>
+                    <span className="team-name">{team.name}</span>
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
         </div>
       </div>

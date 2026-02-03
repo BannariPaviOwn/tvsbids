@@ -7,6 +7,7 @@ from typing import Optional, List
 class UserCreate(BaseModel):
     username: str
     password: str
+    mobile_number: str  # Required, one account per mobile
 
 
 class UserLogin(BaseModel):
@@ -49,6 +50,7 @@ class MatchResponse(BaseModel):
     match_time: str
     venue: Optional[str] = None
     match_type: str
+    series: str = "worldcup"  # ipl, worldcup, etc.
     status: str
     winner_team_id: Optional[int] = None
     is_locked: bool = False
@@ -65,6 +67,7 @@ class MatchCreate(BaseModel):
     match_time: str
     venue: Optional[str] = None
     match_type: str  # league, semi, final
+    series: str = "worldcup"  # ipl, worldcup, etc.
 
 
 class MatchSetResult(BaseModel):
@@ -125,3 +128,19 @@ class LeaderboardEntry(BaseModel):
     wins: int
     losses: int
     total: int
+
+
+# Admin
+class UserListEntry(BaseModel):
+    id: int
+    username: str
+    mobile_number: Optional[str] = None
+    is_active: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class UserDeactivate(BaseModel):
+    is_active: bool

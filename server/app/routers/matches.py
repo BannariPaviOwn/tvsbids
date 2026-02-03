@@ -1,5 +1,5 @@
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -37,6 +37,7 @@ def _match_to_response(match: Match) -> MatchResponse:
         match_time=match.match_time,
         venue=getattr(match, 'venue', None),
         match_type=match.match_type,
+        series=getattr(match, 'series', None) or "worldcup",
         status=match.status,
         winner_team_id=getattr(match, 'winner_team_id', None),
         is_locked=_is_match_locked(match),
@@ -46,10 +47,17 @@ def _match_to_response(match: Match) -> MatchResponse:
 
 @router.get("/", response_model=list[MatchResponse])
 def list_matches(
+    series: str | None = Query(None, description="Filter by series: ipl, worldcup, etc."),
     db: Session = Depends(get_db),
     _=Depends(get_current_user)
 ):
-    matches = db.query(Match).order_by(Match.match_date, Match.match_time).all()
+    q = db.query(Match).order_by(Match.match_date, Match.match_time)
+    if series:
+        try:
+            q = q.filter(Match.series == series)
+        except Exception:
+            pass  # Column may not exist in older DB
+    matches = q.all()
     return [_match_to_response(m) for m in matches]
 
 
@@ -81,6 +89,7 @@ def create_match(
         match_time=match_data.match_time,
         venue=match_data.venue,
         match_type=match_data.match_type,
+        series=getattr(match_data, 'series', None) or "worldcup",
     )
     db.add(match)
     db.commit()

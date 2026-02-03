@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import User, Bid, Match
-from ..schemas import UserResponse, UserBidStats, UserDashboardStats, LeaderboardEntry
+from ..schemas import UserResponse, UserBidStats, UserDashboardStats, LeaderboardEntry, UserListEntry, UserDeactivate
 from ..auth import get_current_user
 from ..config import settings
 
@@ -90,3 +90,42 @@ def get_leaderboard(
         )
         for i, r in enumerate(rows)
     ]
+
+
+@router.get("/admin/users", response_model=list[UserListEntry])
+def admin_list_users(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """List all users. Admin only."""
+    if current_user.username.lower() not in settings.admin_usernames_list:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    users = db.query(User).order_by(User.created_at.desc()).all()
+    return [
+        UserListEntry(
+            id=u.id,
+            username=u.username,
+            mobile_number=getattr(u, "mobile_number", None),
+            is_active=bool(getattr(u, "is_active", 1)),
+            created_at=u.created_at,
+        )
+        for u in users
+    ]
+
+
+@router.patch("/admin/users/{user_id}")
+def admin_set_user_active(
+    user_id: int,
+    data: UserDeactivate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Deactivate or activate a user. Admin only."""
+    if current_user.username.lower() not in settings.admin_usernames_list:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.is_active = 1 if data.is_active else 0
+    db.commit()
+    return {"ok": True, "is_active": user.is_active}

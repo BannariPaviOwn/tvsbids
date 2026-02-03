@@ -24,6 +24,8 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
+    mobile_number = Column(String(15), unique=True, index=True, nullable=True)  # One account per mobile
+    is_active = Column(Integer, default=1, nullable=False)  # 1=active, 0=deactivated
     created_at = Column(DateTime, default=datetime.utcnow)
 
     bids = relationship("Bid", back_populates="user")
@@ -48,6 +50,7 @@ class Match(Base):
     match_time = Column(String(5), nullable=False)  # HH:MM (24h)
     venue = Column(String(100), nullable=True)  # e.g. Wankhede Stadium, Mumbai
     match_type = Column(String(20), nullable=False)  # league, semi, final
+    series = Column(String(30), nullable=False, default="worldcup")  # ipl, worldcup, etc.
     status = Column(String(20), default=MatchStatus.UPCOMING.value)
     created_at = Column(DateTime, default=datetime.utcnow)
 
