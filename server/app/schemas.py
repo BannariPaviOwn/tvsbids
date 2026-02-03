@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 
 # Auth
@@ -46,8 +46,10 @@ class MatchResponse(BaseModel):
     team2: TeamResponse
     match_date: str
     match_time: str
+    venue: Optional[str] = None
     match_type: str
     status: str
+    winner_team_id: Optional[int] = None
     is_locked: bool = False
     seconds_until_start: Optional[int] = None
 
@@ -60,7 +62,23 @@ class MatchCreate(BaseModel):
     team2_id: int
     match_date: str
     match_time: str
+    venue: Optional[str] = None
     match_type: str  # league, semi, final
+
+
+class MatchSetResult(BaseModel):
+    winner_team_id: int
+
+
+class BidderInfo(BaseModel):
+    username: str
+    bid_status: str  # placed, won, lost
+
+
+class MatchBidBreakdown(BaseModel):
+    team1_bidders: List[BidderInfo]
+    team2_bidders: List[BidderInfo]
+    winner_team_id: Optional[int] = None
 
 
 # Bids
@@ -91,3 +109,10 @@ class UserBidStats(BaseModel):
     final_used: int
     final_remaining: int
     final_limit: int
+
+
+class UserDashboardStats(BaseModel):
+    total_matches: int
+    wins: int
+    losses: int
+    pending: int  # Matches bid on but not yet completed

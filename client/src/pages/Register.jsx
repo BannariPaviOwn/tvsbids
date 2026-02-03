@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { register } from '../api';
 import { useAuth } from '../context/AuthContext';
 
@@ -9,7 +9,6 @@ export function Register() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login: authLogin } = useAuth();
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,7 +17,7 @@ export function Register() {
     try {
       const data = await register(username, password);
       authLogin(data);
-      navigate('/');
+      window.location.href = '/';
     } catch (e) {
       setError(e.message);
     } finally {

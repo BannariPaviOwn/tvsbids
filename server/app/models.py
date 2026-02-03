@@ -43,14 +43,17 @@ class Match(Base):
     id = Column(Integer, primary_key=True, index=True)
     team1_id = Column(Integer, ForeignKey("teams.id"), nullable=False)
     team2_id = Column(Integer, ForeignKey("teams.id"), nullable=False)
+    winner_team_id = Column(Integer, ForeignKey("teams.id"), nullable=True)  # Set when match completes
     match_date = Column(String(10), nullable=False)  # YYYY-MM-DD
     match_time = Column(String(5), nullable=False)  # HH:MM (24h)
+    venue = Column(String(100), nullable=True)  # e.g. Wankhede Stadium, Mumbai
     match_type = Column(String(20), nullable=False)  # league, semi, final
     status = Column(String(20), default=MatchStatus.UPCOMING.value)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     team1 = relationship("Team", foreign_keys=[team1_id])
     team2 = relationship("Team", foreign_keys=[team2_id])
+    winner = relationship("Team", foreign_keys=[winner_team_id])
     bids = relationship("Bid", back_populates="match")
 
 

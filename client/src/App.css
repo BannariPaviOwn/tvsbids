@@ -122,11 +122,123 @@ body {
   text-decoration: underline;
 }
 
-/* Dashboard */
-.dashboard {
+/* Dashboard & Matches pages */
+.dashboard-page,
+.matches-page {
   max-width: 720px;
   margin: 0 auto;
   padding: 1.5rem;
+}
+
+.main-nav {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.nav-link {
+  padding: 0.5rem 1rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.nav-link:hover,
+.nav-link.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.main-nav button.nav-link {
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+
+.dashboard-stats {
+  margin-bottom: 2rem;
+}
+
+.dashboard-stats h2,
+.bid-limits h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin: 0 0 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+@media (min-width: 480px) {
+  .stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.stat-card .stat-number {
+  display: block;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.stat-card.total .stat-number {
+  color: var(--accent);
+}
+
+.stat-card.wins .stat-number {
+  color: var(--success);
+}
+
+.stat-card.losses .stat-number {
+  color: var(--danger);
+}
+
+.stat-card.pending .stat-number {
+  color: var(--text-muted);
+}
+
+.stat-card .stat-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.bid-limits {
+  margin-bottom: 2rem;
+}
+
+.btn-matches {
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: var(--accent);
+  color: #000;
+  border-radius: 10px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.btn-matches:hover {
+  background: var(--accent-dim);
 }
 
 .dashboard-header {
@@ -171,6 +283,10 @@ body {
 }
 
 /* Bid stats */
+.bid-limits .bid-stats {
+  margin-bottom: 0;
+}
+
 .bid-stats {
   display: flex;
   gap: 1rem;
@@ -200,6 +316,74 @@ body {
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--accent);
+}
+
+/* Match reminder banner */
+.match-reminder-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: linear-gradient(135deg, rgba(232, 185, 35, 0.2), rgba(196, 155, 30, 0.15));
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.reminder-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.reminder-icon {
+  font-size: 1.25rem;
+}
+
+.reminder-content strong {
+  color: var(--accent);
+}
+
+.reminder-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.reminder-btn {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.reminder-btn:hover {
+  opacity: 0.9;
+}
+
+.reminder-btn.whatsapp-btn {
+  background: #25D366;
+  color: #fff;
+}
+
+.reminder-dismiss {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0 0.25rem;
+  line-height: 1;
+}
+
+.reminder-dismiss:hover {
+  color: var(--text);
 }
 
 /* Filter tabs */
@@ -243,8 +427,9 @@ body {
 .match-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1.25rem;
+  border-radius: 14px;
+  padding: 0;
+  overflow: hidden;
   transition: border-color 0.2s;
 }
 
@@ -253,32 +438,77 @@ body {
   border-color: var(--text-muted);
 }
 
-.match-header {
+.match-meta {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
   align-items: center;
-  margin-bottom: 1rem;
+  gap: 0.75rem 1rem;
+  padding: 1rem 1.25rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid var(--border);
 }
 
-.match-type {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--accent);
-  text-transform: uppercase;
+.match-type-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--bg);
+  background: var(--accent);
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
   letter-spacing: 0.05em;
 }
 
-.match-date {
+.match-datetime {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 0.85rem;
   color: var(--text-muted);
+}
+
+.match-date {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.match-time {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.match-venue {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-left: auto;
+  max-width: 100%;
+}
+
+@media (max-width: 480px) {
+  .match-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .match-venue {
+    margin-left: 0;
+  }
+}
+
+.venue-icon {
+  font-size: 0.9rem;
+  opacity: 0.9;
 }
 
 .match-teams {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
+  gap: 1.25rem;
   flex-wrap: wrap;
+  padding: 1.5rem 1.25rem;
 }
 
 .team-block {
@@ -289,6 +519,10 @@ body {
 }
 
 .team-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   padding: 0.75rem 1.5rem;
   min-width: 80px;
   background: var(--bg);
@@ -317,6 +551,21 @@ body {
   opacity: 0.6;
 }
 
+.team-btn.view-only {
+  cursor: pointer;
+}
+
+.team-btn.view-only:disabled {
+  opacity: 1;
+}
+
+.team-flag {
+  width: 24px;
+  height: 18px;
+  object-fit: cover;
+  border-radius: 2px;
+}
+
 .team-name {
   font-size: 0.8rem;
   color: var(--text-muted);
@@ -329,8 +578,19 @@ body {
 }
 
 .match-footer {
-  margin-top: 1rem;
+  padding: 0.75rem 1.25rem;
   text-align: center;
+  border-top: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.status-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  opacity: 0.9;
 }
 
 .countdown {
@@ -348,6 +608,16 @@ body {
   font-weight: 600;
 }
 
+.status.won {
+  color: var(--success);
+  font-weight: 700;
+}
+
+.status.lost {
+  color: var(--danger);
+  font-weight: 600;
+}
+
 .status.locked {
   color: var(--text-muted);
 }
@@ -357,4 +627,175 @@ body {
   font-size: 0.85rem;
   color: var(--danger);
   text-align: center;
+}
+
+/* Bid breakdown modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.modal-content {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  max-width: 420px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+}
+
+.bid-breakdown-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.bid-breakdown-modal .modal-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 0.25rem;
+}
+
+.modal-close:hover {
+  color: var(--text);
+}
+
+.modal-body {
+  padding: 1.25rem;
+}
+
+.modal-loading {
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.breakdown-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.breakdown-team {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  padding: 1rem;
+  border: 1px solid var(--border);
+}
+
+.breakdown-team.winner {
+  border-color: var(--success);
+  background: rgba(0, 186, 124, 0.1);
+}
+
+.breakdown-team-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 700;
+}
+
+.breakdown-team-header .team-flag {
+  width: 20px;
+  height: 15px;
+}
+
+.won-badge {
+  margin-left: auto;
+  font-size: 0.7rem;
+  background: var(--success);
+  color: var(--bg);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.bidders-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+.bidders-list li {
+  padding: 0.25rem 0;
+  color: var(--text-muted);
+}
+
+.bidders-list li.won {
+  color: var(--success);
+  font-weight: 600;
+}
+
+.bidders-list li.lost {
+  color: var(--danger);
+}
+
+.bidders-list li.empty {
+  font-style: italic;
+  opacity: 0.7;
+}
+
+/* Teams modal */
+.teams-modal .modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.teams-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.team-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.team-item .team-flag {
+  width: 28px;
+  height: 21px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.team-item .team-code {
+  font-weight: 700;
+  min-width: 2.5rem;
+  color: var(--accent);
+}
+
+.team-item .team-name {
+  color: var(--text);
+  font-size: 0.95rem;
 }

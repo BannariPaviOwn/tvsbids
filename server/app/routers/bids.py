@@ -36,7 +36,7 @@ def place_bid(
     bid_data: BidCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
+) -> BidResponse:
     match = db.query(Match).filter(Match.id == bid_data.match_id).first()
     if not match:
         raise HTTPException(status_code=404, detail="Match not found")
@@ -58,13 +58,16 @@ def place_bid(
         Bid.user_id == current_user.id,
         Bid.match_id == bid_data.match_id
     ).first()
-    if existing:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You have already placed a bid on this match"
-        )
 
-    # Check bid limit for match type
+    # If a bid already exists and the match is still open, allow changing the team
+    if existing:
+        existing.selected_team_id = bid_data.selected_team_id
+        existing.bid_status = "placed"
+        db.commit()
+        db.refresh(existing)
+        return BidResponse.model_validate(existing)
+
+    # New bid: enforce per-stage bid limits
     used = _get_user_bid_count_for_type(db, current_user.id, match.match_type)
     limit = _get_bid_limit(match.match_type)
     if used >= limit:

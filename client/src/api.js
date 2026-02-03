@@ -1,4 +1,4 @@
-const API_BASE = '/api';
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 function getToken() {
   return localStorage.getItem('token');
@@ -56,6 +56,12 @@ export async function getBidStats() {
   return res.json();
 }
 
+export async function getDashboardStats() {
+  const res = await fetch(`${API_BASE}/users/dashboard-stats`, { headers: getHeaders() });
+  if (!res.ok) throw new Error('Failed to fetch dashboard stats');
+  return res.json();
+}
+
 export async function placeBid(matchId, selectedTeamId) {
   const res = await fetch(`${API_BASE}/bids/`, {
     method: 'POST',
@@ -72,5 +78,17 @@ export async function placeBid(matchId, selectedTeamId) {
 export async function getMyBidForMatch(matchId) {
   const res = await fetch(`${API_BASE}/bids/for-match/${matchId}`, { headers: getHeaders() });
   if (!res.ok) throw new Error('Failed to fetch bid');
+  return res.json();
+}
+
+export async function getMatchBidBreakdown(matchId) {
+  const res = await fetch(`${API_BASE}/matches/${matchId}/bid-breakdown`, { headers: getHeaders() });
+  if (!res.ok) throw new Error('Failed to fetch bid breakdown');
+  return res.json();
+}
+
+export async function getTeams() {
+  const res = await fetch(`${API_BASE}/matches/teams`, { headers: getHeaders() });
+  if (!res.ok) throw new Error('Failed to fetch teams');
   return res.json();
 }
