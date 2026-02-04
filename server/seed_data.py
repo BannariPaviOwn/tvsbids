@@ -4,7 +4,6 @@ For local SQLite (when Neon unreachable): python -m seed_data --local
 """
 import os
 import sys
-from datetime import datetime, timedelta
 
 # Support --local to use SQLite (must run BEFORE importing app.database)
 if "--local" in sys.argv:
@@ -58,41 +57,65 @@ for t in teams_data:
 
 db.commit()
 
-# Sample matches - IND vs AUS, Afghanistan vs New Zealand, etc.
-today = datetime.now().date()
+# World Cup 2026 - League stage (exact schedule from user)
 teams = {t.short_name: t for t in db.query(Team).all()}
 
-# (t1, t2, mtype, day_offset, time, venue, series)
-sample_matches = [
-    ("IND", "AUS", "league", 0, "14:00", "Wankhede Stadium, Mumbai", "worldcup"),
-    ("AFG", "NZ", "league", 0, "15:30", "Eden Gardens, Kolkata", "worldcup"),
-    ("ENG", "PAK", "league", 1, "19:00", "Chinnaswamy Stadium, Bengaluru", "worldcup"),
-    ("SA", "WI", "league", 1, "14:00", "MA Chidambaram Stadium, Chennai", "worldcup"),
-    ("SL", "NEP", "league", 2, "15:30", "Arun Jaitley Stadium, Delhi", "worldcup"),
-    ("IND", "ENG", "league", 2, "19:00", "Narendra Modi Stadium, Ahmedabad", "worldcup"),
-    ("AUS", "AFG", "league", 3, "14:00", "Wankhede Stadium, Mumbai", "worldcup"),
-    ("NZ", "PAK", "semi", 4, "14:00", "Eden Gardens, Kolkata", "worldcup"),
-    ("IND", "SA", "semi", 5, "19:00", "Wankhede Stadium, Mumbai", "worldcup"),
-    ("SA", "IND", "final", 6, "19:00", "Narendra Modi Stadium, Ahmedabad", "worldcup"),
-    # IPL matches
-    ("IND", "AUS", "league", 0, "19:30", "Wankhede Stadium, Mumbai", "ipl"),
-    ("ENG", "PAK", "league", 1, "19:30", "Chinnaswamy Stadium, Bengaluru", "ipl"),
-    ("SA", "NZ", "league", 2, "19:30", "Eden Gardens, Kolkata", "ipl"),
+# (t1, t2, mtype, match_date, match_time, venue, series)
+worldcup_matches = [
+    ("PAK", "NED", "league", "2026-02-07", "11:00", "SSC, Colombo", "worldcup"),
+    ("WI", "SCO", "league", "2026-02-07", "15:00", "Kolkata", "worldcup"),
+    ("IND", "USA", "league", "2026-02-07", "19:00", "Mumbai", "worldcup"),
+    ("NZ", "AFG", "league", "2026-02-08", "11:00", "Chennai", "worldcup"),
+    ("ENG", "NEP", "league", "2026-02-08", "15:00", "Mumbai", "worldcup"),
+    ("SL", "IRE", "league", "2026-02-08", "19:00", "Premadasa, Colombo", "worldcup"),
+    ("SCO", "ITA", "league", "2026-02-09", "11:00", "Kolkata", "worldcup"),
+    ("ZIM", "OMA", "league", "2026-02-09", "15:00", "SSC, Colombo", "worldcup"),
+    ("SA", "CAN", "league", "2026-02-09", "19:00", "Ahmedabad", "worldcup"),
+    ("NED", "NAM", "league", "2026-02-10", "11:00", "Delhi", "worldcup"),
+    ("NZ", "UAE", "league", "2026-02-10", "15:00", "Chennai", "worldcup"),
+    ("PAK", "USA", "league", "2026-02-10", "19:00", "SSC, Colombo", "worldcup"),
+    ("SA", "AFG", "league", "2026-02-11", "11:00", "Ahmedabad", "worldcup"),
+    ("AUS", "IRE", "league", "2026-02-11", "15:00", "Premadasa, Colombo", "worldcup"),
+    ("ENG", "WI", "league", "2026-02-11", "19:00", "Mumbai", "worldcup"),
+    ("SL", "OMA", "league", "2026-02-12", "11:00", "Kandy", "worldcup"),
+    ("NEP", "ITA", "league", "2026-02-12", "15:00", "Mumbai", "worldcup"),
+    ("IND", "NAM", "league", "2026-02-12", "19:00", "New Delhi", "worldcup"),
+    ("AUS", "ZIM", "league", "2026-02-13", "11:00", "Premadasa, Colombo", "worldcup"),
+    ("CAN", "UAE", "league", "2026-02-13", "15:00", "Delhi", "worldcup"),
+    ("USA", "NED", "league", "2026-02-13", "19:00", "Chennai", "worldcup"),
+    ("IRE", "OMA", "league", "2026-02-14", "11:00", "SSC, Colombo", "worldcup"),
+    ("ENG", "SCO", "league", "2026-02-14", "15:00", "Kolkata", "worldcup"),
+    ("NZ", "SA", "league", "2026-02-14", "19:00", "Ahmedabad", "worldcup"),
+    ("WI", "NEP", "league", "2026-02-15", "11:00", "Mumbai", "worldcup"),
+    ("USA", "NAM", "league", "2026-02-15", "15:00", "Chennai", "worldcup"),
+    ("IND", "PAK", "league", "2026-02-15", "19:00", "Premadasa, Colombo", "worldcup"),
+    ("AFG", "UAE", "league", "2026-02-16", "11:00", "Delhi", "worldcup"),
+    ("ENG", "ITA", "league", "2026-02-16", "15:00", "Kolkata", "worldcup"),
+    ("AUS", "SL", "league", "2026-02-16", "19:00", "Kandy", "worldcup"),
+    ("NZ", "CAN", "league", "2026-02-17", "11:00", "Chennai", "worldcup"),
+    ("IRE", "ZIM", "league", "2026-02-17", "15:00", "Kandy", "worldcup"),
+    ("SCO", "NEP", "league", "2026-02-17", "19:00", "Mumbai", "worldcup"),
+    ("SA", "UAE", "league", "2026-02-18", "11:00", "Delhi", "worldcup"),
+    ("PAK", "NAM", "league", "2026-02-18", "15:00", "SSC, Colombo", "worldcup"),
+    ("IND", "NED", "league", "2026-02-18", "19:00", "Ahmedabad", "worldcup"),
+    ("WI", "ITA", "league", "2026-02-19", "11:00", "Kolkata", "worldcup"),
+    ("SL", "ZIM", "league", "2026-02-19", "15:00", "Premadasa, Colombo", "worldcup"),
+    ("AFG", "CAN", "league", "2026-02-19", "19:00", "Chennai", "worldcup"),
+    ("AUS", "OMA", "league", "2026-02-20", "19:00", "Kandy", "worldcup"),
 ]
 
-for t1_short, t2_short, mtype, day_offset, match_time, venue, series in sample_matches:
+for t1_short, t2_short, mtype, match_date, match_time, venue, series in worldcup_matches:
     t1 = teams.get(t1_short)
     t2 = teams.get(t2_short)
     if t1 and t2:
-        d = (today + timedelta(days=day_offset)).strftime("%Y-%m-%d")
         if not db.query(Match).filter(
             Match.team1_id == t1.id, Match.team2_id == t2.id,
-            Match.match_date == d, Match.match_time == match_time,
+            Match.match_date == match_date, Match.match_time == match_time,
             Match.series == series
         ).first():
             db.add(Match(
                 team1_id=t1.id, team2_id=t2.id,
-                match_date=d, match_time=match_time,
+                match_date=match_date, match_time=match_time,
                 venue=venue, match_type=mtype, series=series
             ))
 
