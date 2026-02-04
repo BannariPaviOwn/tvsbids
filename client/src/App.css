@@ -133,6 +133,129 @@ body {
 }
 
 /* Admin page */
+.admin-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.admin-tab {
+  padding: 0.5rem 1rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.admin-tab:hover {
+  color: var(--text);
+  border-color: var(--accent-dim);
+}
+
+.admin-tab.active {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+.admin-matches-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.admin-match-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.admin-match-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.admin-match-info .match-teams {
+  font-weight: 600;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-match-info .match-type-badge {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.4rem;
+  background: var(--border);
+  border-radius: 4px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.admin-match-info .match-amount {
+  font-size: 0.85rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.admin-match-info .match-meta {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.admin-match-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-match-actions select {
+  padding: 0.5rem 0.75rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.9rem;
+  min-width: 160px;
+}
+
+.btn-confirm {
+  padding: 0.5rem 1rem;
+  background: var(--success);
+  color: var(--bg);
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-confirm:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.btn-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.result-badge {
+  padding: 0.35rem 0.75rem;
+  background: rgba(0, 186, 124, 0.2);
+  color: var(--success);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
 .admin-section h2 {
   margin: 0 0 0.25rem;
   font-size: 1.5rem;
@@ -603,7 +726,7 @@ body {
 
 .leaderboard-header {
   display: grid;
-  grid-template-columns: 50px 1fr 60px 60px 60px;
+  grid-template-columns: 50px 1fr 60px 60px 60px 90px;
   gap: 1rem;
   padding: 0.75rem 1.25rem;
   background: rgba(0, 0, 0, 0.3);
@@ -614,7 +737,7 @@ body {
 
 .leaderboard-row {
   display: grid;
-  grid-template-columns: 50px 1fr 60px 60px 60px;
+  grid-template-columns: 50px 1fr 60px 60px 60px 90px;
   gap: 1rem;
   padding: 0.9rem 1.25rem;
   border-bottom: 1px solid var(--border);
@@ -648,6 +771,16 @@ body {
 .leaderboard-row .col-losses {
   color: var(--danger);
   font-weight: 500;
+}
+
+.leaderboard-row .col-amount.amount-positive {
+  color: var(--success);
+  font-weight: 700;
+}
+
+.leaderboard-row .col-amount.amount-negative {
+  color: var(--danger);
+  font-weight: 700;
 }
 
 /* Match card */

@@ -59,6 +59,15 @@ class Match(Base):
     winner = relationship("Team", foreign_keys=[winner_team_id])
 
 
+class MatchResult(Base):
+    """Stores confirmed match results. winner_team_id=None means rain/no result."""
+    __tablename__ = "match_results"
+
+    match_id = Column(Integer, primary_key=True)
+    winner_team_id = Column(Integer, ForeignKey("teams.id"), nullable=True)  # None = rain dispute
+    confirmed_at = Column(DateTime, default=datetime.utcnow)
+
+
 class Bid(Base):
     __tablename__ = "bids"
 
@@ -66,7 +75,8 @@ class Bid(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     match_id = Column(Integer, nullable=False)  # References match_data by id (1-based)
     selected_team_id = Column(Integer, ForeignKey("teams.id"), nullable=True)  # None = missed bid
-    bid_status = Column(String(20), default="pending")  # pending, placed, missed, won, lost
+    bid_status = Column(String(20), default="pending")  # pending, placed, missed, won, lost, no_result
+    amount_won = Column(Integer, nullable=True)  # Net Rs: +profit for won, -50 for lost, 0 for no_result
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

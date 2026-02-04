@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import Team, Bid, User
+from ..models import Team, Bid, User, MatchResult
 from ..schemas import MatchResponse, TeamResponse, MatchBidBreakdown, BidderInfo
 from ..auth import get_current_user
 from ..match_data import get_matches, get_match_by_id
@@ -14,8 +14,12 @@ router = APIRouter()
 @router.get("/", response_model=list[MatchResponse])
 def list_matches(
     series: str | None = Query(None, description="Filter by series: ipl, worldcup, etc."),
+    db: Session = Depends(get_db),
 ):
     matches = get_matches(series)
+    results = {r.match_id: r.winner_team_id for r in db.query(MatchResult).all()}
+    for m in matches:
+        m["winner_team_id"] = results.get(m["id"])
     return [MatchResponse.model_validate(m) for m in matches]
 
 
@@ -40,6 +44,8 @@ def get_match_bid_breakdown(
     match = get_match_by_id(match_id)
     if not match:
         raise HTTPException(status_code=404, detail="Match not found")
+    result = db.query(MatchResult).filter(MatchResult.match_id == match_id).first()
+    winner_team_id = result.winner_team_id if result else None
     bids = db.query(Bid).filter(Bid.match_id == match_id).all()
     users = {u.id: u for u in db.query(User).filter(User.id.in_({b.user_id for b in bids})).all()}
     team1_id, team2_id = match["team1"]["id"], match["team2"]["id"]
@@ -56,5 +62,5 @@ def get_match_bid_breakdown(
     return MatchBidBreakdown(
         team1_bidders=team1_bidders,
         team2_bidders=team2_bidders,
-        winner_team_id=None,  # Static data - no result storage
+        winner_team_id=winner_team_id,
     )

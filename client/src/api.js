@@ -139,3 +139,22 @@ export async function adminSetUserActive(userId, isActive) {
   if (!res.ok) throw new Error('Failed to update user');
   return res.json();
 }
+
+export async function adminGetMatchResults() {
+  const res = await fetch(`${API_BASE}/users/admin/match-results`, { headers: getHeaders() });
+  if (!res.ok) throw new Error('Failed to fetch match results');
+  return res.json();
+}
+
+export async function adminConfirmMatchResult(matchId, winnerTeamId) {
+  const res = await fetch(`${API_BASE}/users/admin/match-results/${matchId}/confirm`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({ winner_team_id: winnerTeamId }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to confirm result');
+  }
+  return res.json();
+}

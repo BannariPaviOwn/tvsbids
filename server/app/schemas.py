@@ -71,7 +71,7 @@ class MatchCreate(BaseModel):
 
 
 class MatchSetResult(BaseModel):
-    winner_team_id: int
+    winner_team_id: Optional[int] = None  # None = rain/no result
 
 
 class BidderInfo(BaseModel):
@@ -128,6 +128,7 @@ class LeaderboardEntry(BaseModel):
     wins: int
     losses: int
     total: int
+    amount_won: int = 0  # Net Rs (positive=profit, negative=loss)
 
 
 # Admin

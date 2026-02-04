@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
 from .database import engine, Base, get_db, is_postgres
-from .models import User, Team, Bid
+from .models import User, Team, Bid, MatchResult
 from .routers import auth, matches, bids, users
 from .config import settings
 
@@ -38,6 +38,13 @@ if is_postgres:
             conn.execute(text("ALTER TABLE bids DROP CONSTRAINT IF EXISTS bids_match_id_fkey"))
     except Exception:
         pass
+
+# Migration: add amount_won to bids
+try:
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TABLE bids ADD COLUMN amount_won INTEGER"))
+except Exception:
+    pass
 
 # Migration: add mobile_number, is_active to users
 try:

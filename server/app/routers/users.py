@@ -2,11 +2,19 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import User, Bid
-from ..match_data import get_match_type
-from ..schemas import UserResponse, UserBidStats, UserDashboardStats, LeaderboardEntry, UserListEntry, UserDeactivate
+from ..models import User, Bid, MatchResult
+from ..match_data import get_match_type, get_match_by_id, get_match_team_ids
+from ..schemas import UserResponse, UserBidStats, UserDashboardStats, LeaderboardEntry, UserListEntry, UserDeactivate, MatchSetResult
 from ..auth import get_current_user
 from ..config import settings
+
+
+def _get_bid_amount(match_type: str) -> int:
+    if match_type == "semi":
+        return getattr(settings, 'BID_AMOUNT_SEMI', 100)
+    if match_type == "final":
+        return getattr(settings, 'BID_AMOUNT_FINAL', 200)
+    return getattr(settings, 'BID_AMOUNT_LEAGUE', 50)
 
 router = APIRouter()
 
@@ -68,16 +76,17 @@ def get_leaderboard(
     db: Session = Depends(get_db),
     _=Depends(get_current_user)
 ):
-    """Leaderboard: all users ranked by wins (most wins at top)."""
-    users = db.query(User).all()
+    """Leaderboard: users ranked by net amount (Rs). Amount: green if positive, red if negative."""
+    users = db.query(User).filter(User.is_active == 1).all()
     rows = []
     for u in users:
         bids = db.query(Bid).filter(Bid.user_id == u.id).all()
         wins = sum(1 for b in bids if b.bid_status == "won")
         losses = sum(1 for b in bids if b.bid_status == "lost")
         total = len(bids)
-        rows.append({"user": u, "wins": wins, "losses": losses, "total": total})
-    rows.sort(key=lambda x: (-x["wins"], -x["total"]))
+        amount_won = sum(b.amount_won or 0 for b in bids)
+        rows.append({"user": u, "wins": wins, "losses": losses, "total": total, "amount_won": amount_won})
+    rows.sort(key=lambda x: (-x["amount_won"], -x["wins"]))
     return [
         LeaderboardEntry(
             rank=i + 1,
@@ -85,6 +94,7 @@ def get_leaderboard(
             wins=r["wins"],
             losses=r["losses"],
             total=r["total"],
+            amount_won=r["amount_won"],
         )
         for i, r in enumerate(rows)
     ]
@@ -109,6 +119,71 @@ def admin_list_users(
         )
         for u in users
     ]
+
+
+@router.get("/admin/match-results")
+def admin_get_match_results(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Get match results status for admin. Returns matches with result status and bid amounts."""
+    if current_user.username.lower() not in settings.admin_usernames_list:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    results = {r.match_id: r.winner_team_id for r in db.query(MatchResult).all()}
+    return {
+        "results": results,
+        "bid_amounts": {
+            "league": _get_bid_amount("league"),
+            "semi": _get_bid_amount("semi"),
+            "final": _get_bid_amount("final"),
+        },
+    }
+
+
+@router.post("/admin/match-results/{match_id}/confirm")
+def admin_confirm_match_result(
+    match_id: int,
+    data: MatchSetResult,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Admin confirms match result. winner_team_id=None means rain/no result (no deduction)."""
+    if current_user.username.lower() not in settings.admin_usernames_list:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    match = get_match_by_id(match_id)
+    if not match:
+        raise HTTPException(status_code=404, detail="Match not found")
+    # Check already confirmed
+    existing = db.query(MatchResult).filter(MatchResult.match_id == match_id).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Match result already confirmed")
+    team1_id, team2_id = match["team1"]["id"], match["team2"]["id"]
+    winner_team_id = data.winner_team_id
+    if winner_team_id is not None and winner_team_id not in (team1_id, team2_id):
+        raise HTTPException(status_code=400, detail="Winner must be one of the playing teams")
+    bids = db.query(Bid).filter(Bid.match_id == match_id, Bid.selected_team_id.isnot(None)).all()
+    match_type = match.get("match_type", "league")
+    bid_amount = _get_bid_amount(match_type)
+    if winner_team_id is None:
+        # Rain dispute: no amount deducted
+        for b in bids:
+            b.bid_status = "no_result"
+            b.amount_won = 0
+    else:
+        winners = [b for b in bids if b.selected_team_id == winner_team_id]
+        losers = [b for b in bids if b.selected_team_id != winner_team_id]
+        pot = len(losers) * bid_amount
+        for b in losers:
+            b.bid_status = "lost"
+            b.amount_won = -bid_amount
+        if winners:
+            share = pot // len(winners)
+            for b in winners:
+                b.bid_status = "won"
+                b.amount_won = share - bid_amount  # Net profit
+        else:
+            # No winners: losers get refund? Or pot goes to... For now, losers still lose.
+            pass
+    db.add(MatchResult(match_id=match_id, winner_team_id=winner_team_id))
+    db.commit()
+    return {"ok": True, "match_id": match_id, "winner_team_id": winner_team_id}
 
 
 @router.patch("/admin/users/{user_id}")

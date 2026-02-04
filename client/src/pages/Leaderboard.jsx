@@ -6,14 +6,18 @@ import { TeamsModal } from '../components/TeamsModal';
 
 function getSampleLeaderboard() {
   return [
-    { rank: 1, username: 'pavi', wins: 5, losses: 2, total: 7 },
-    { rank: 2, username: 'simbu', wins: 4, losses: 3, total: 7 },
-    { rank: 3, username: 'sax', wins: 3, losses: 2, total: 5 },
-    { rank: 4, username: 'ks', wins: 3, losses: 4, total: 7 },
-    { rank: 5, username: 'nimie', wins: 2, losses: 3, total: 5 },
-    { rank: 6, username: 'nikhil', wins: 1, losses: 4, total: 5 },
-    { rank: 7, username: 'ranjith', wins: 0, losses: 2, total: 2 },
+    { rank: 1, username: 'pavi', wins: 5, losses: 2, total: 7, amount_won: 150 },
+    { rank: 2, username: 'simbu', wins: 4, losses: 3, total: 7, amount_won: 50 },
+    { rank: 3, username: 'sax', wins: 3, losses: 2, total: 5, amount_won: 0 },
+    { rank: 4, username: 'ks', wins: 3, losses: 4, total: 7, amount_won: -50 },
+    { rank: 5, username: 'nimie', wins: 2, losses: 3, total: 5, amount_won: -100 },
   ];
+}
+
+function formatAmount(amount) {
+  const n = Number(amount);
+  if (n >= 0) return `+₹${n}`;
+  return `-₹${Math.abs(n)}`;
 }
 
 export function Leaderboard() {
@@ -49,7 +53,7 @@ export function Leaderboard() {
 
       <section className="leaderboard-section">
         <h2>Player Leaderboard</h2>
-        <p className="leaderboard-subtitle">Ranked by wins — who&apos;s on top?</p>
+        <p className="leaderboard-subtitle">Ranked by net amount — green = profit, red = loss (League ₹50, Semi ₹100, Final ₹200)</p>
 
         {loading ? (
           <p className="loading">Loading...</p>
@@ -61,6 +65,7 @@ export function Leaderboard() {
               <span className="col-wins">Wins</span>
               <span className="col-losses">Losses</span>
               <span className="col-total">Total</span>
+              <span className="col-amount">Amount</span>
             </div>
             {leaderboard.length === 0 ? (
               <p className="no-data">No players yet. Place bids to appear on the leaderboard!</p>
@@ -77,6 +82,11 @@ export function Leaderboard() {
                   <span className="col-wins">{entry.wins}</span>
                   <span className="col-losses">{entry.losses}</span>
                   <span className="col-total">{entry.total}</span>
+                  <span
+                    className={`col-amount amount-${(entry.amount_won ?? 0) >= 0 ? 'positive' : 'negative'}`}
+                  >
+                    {formatAmount(entry.amount_won ?? 0)}
+                  </span>
                 </div>
               ))
             )}
