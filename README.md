@@ -64,3 +64,14 @@ bids_cric/
 ## Adding Matches
 
 Use the API at `POST /matches/` (requires auth) or add to `seed_data.py` and re-run.
+
+## Deployment (Vercel + Render)
+
+- **Frontend**: Vercel (builds from `client/`)
+- **Backend**: Render (from `server/` via `render.yaml`)
+
+The `vercel.json` rewrites `/api/*` to your Render backend (`tvsbids-api.onrender.com`). If your Render service has a different URL, set `VITE_API_URL` in Vercel to your backend URL (e.g. `https://your-service.onrender.com`).
+
+**Backend (Render)** must have:
+- `DATABASE_URL` – Neon PostgreSQL connection string
+- `CORS_ORIGINS` – Include your Vercel URL, e.g. `https://tvsbids.vercel.app`

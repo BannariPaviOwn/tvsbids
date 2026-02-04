@@ -1,23 +1,39 @@
 """Match operations using database. Replaces match_data for runtime match queries."""
 from datetime import datetime
-from zoneinfo import ZoneInfo
 from sqlalchemy.orm import Session, joinedload
 
 from .models import Match, MatchResult
 from .config import settings
 
+try:
+    from zoneinfo import ZoneInfo
+    _UTC = ZoneInfo("UTC")
+
+    def _get_tz(name: str):
+        try:
+            return ZoneInfo(name)
+        except Exception:
+            return _UTC
+except (ImportError, Exception):
+    from datetime import timezone
+    _UTC = timezone.utc
+    _get_tz = lambda _: _UTC  # Fallback: use UTC for all
+
 
 def _parse_match_datetime(match_date: str, match_time: str):
     """Parse match date/time as naive datetime in MATCH_TIMEZONE, return timezone-aware UTC."""
     match_dt = datetime.strptime(f"{match_date} {match_time}", "%Y-%m-%d %H:%M")
-    tz = ZoneInfo(settings.MATCH_TIMEZONE)
-    return match_dt.replace(tzinfo=tz).astimezone(ZoneInfo("UTC"))
+    tz = _get_tz(settings.MATCH_TIMEZONE)
+    if tz:
+        return match_dt.replace(tzinfo=tz).astimezone(_UTC)
+    return match_dt  # Fallback: treat as UTC if zoneinfo unavailable
 
 
 def _is_match_locked(match_date: str, match_time: str) -> bool:
     try:
         match_dt_utc = _parse_match_datetime(match_date, match_time)
-        return datetime.now(ZoneInfo("UTC")) >= match_dt_utc
+        now_utc = datetime.now(_UTC) if _UTC else datetime.utcnow()
+        return now_utc >= match_dt_utc
     except (ValueError, Exception):
         return False
 
@@ -25,11 +41,19 @@ def _is_match_locked(match_date: str, match_time: str) -> bool:
 def _seconds_until_start(match_date: str, match_time: str) -> int | None:
     try:
         match_dt_utc = _parse_match_datetime(match_date, match_time)
-        now_utc = datetime.now(ZoneInfo("UTC"))
+        now_utc = datetime.now(_UTC) if _UTC else datetime.utcnow()
         delta = (match_dt_utc - now_utc).total_seconds()
         return max(0, int(delta)) if delta > 0 else None
     except (ValueError, Exception):
         return None
+
+
+def get_today_str() -> str:
+    """Current date in MATCH_TIMEZONE (YYYY-MM-DD)."""
+    tz = _get_tz(settings.MATCH_TIMEZONE) if _get_tz else None
+    if tz:
+        return datetime.now(tz).strftime("%Y-%m-%d")
+    return datetime.utcnow().strftime("%Y-%m-%d")
 
 
 def _match_to_dict(m: Match, winner_team_id: int | None = None) -> dict:

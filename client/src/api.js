@@ -13,11 +13,15 @@ function getHeaders() {
 }
 
 export async function login(username, password) {
-  const res = await fetch(`${API_BASE}/auth/login`, {
-    method: 'POST',
-    headers: getHeaders(),
-    body: JSON.stringify({ username, password }),
-  });
+  const res = await fetchWithTimeout(
+    `${API_BASE}/auth/login`,
+    {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ username, password }),
+    },
+    AUTH_TIMEOUT_MS
+  );
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     const msg = Array.isArray(err.detail) ? err.detail[0]?.msg || err.detail[0] : err.detail;
@@ -27,11 +31,15 @@ export async function login(username, password) {
 }
 
 export async function register(username, password, mobileNumber) {
-  const res = await fetch(`${API_BASE}/auth/register`, {
-    method: 'POST',
-    headers: getHeaders(),
-    body: JSON.stringify({ username, password, mobile_number: mobileNumber }),
-  });
+  const res = await fetchWithTimeout(
+    `${API_BASE}/auth/register`,
+    {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ username, password, mobile_number: mobileNumber }),
+    },
+    AUTH_TIMEOUT_MS
+  );
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     const msg = Array.isArray(err.detail) ? err.detail[0]?.msg || err.detail[0] : err.detail;
@@ -41,16 +49,20 @@ export async function register(username, password, mobileNumber) {
 }
 
 const FETCH_TIMEOUT_MS = 15000; // 15s - Render free tier can take 30-60s to cold start
+const AUTH_TIMEOUT_MS = 60000;   // 60s for login/register - backend cold start can be slow
 
-async function fetchWithTimeout(url, options = {}) {
+async function fetchWithTimeout(url, options = {}, timeoutMs = FETCH_TIMEOUT_MS) {
   const ctrl = new AbortController();
-  const id = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
+  const id = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
     const res = await fetch(url, { ...options, signal: ctrl.signal });
     clearTimeout(id);
     return res;
   } catch (e) {
     clearTimeout(id);
+    if (e.name === 'AbortError') {
+      throw new Error('Server is slow or unreachable. Check your connection and try again.');
+    }
     throw e;
   }
 }

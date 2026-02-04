@@ -6,7 +6,7 @@ from ..database import get_db
 from ..models import Team, Bid, User, MatchResult
 from ..schemas import MatchResponse, TeamResponse, MatchBidBreakdown, BidderInfo
 from ..auth import get_current_user
-from ..match_service import get_matches, get_match_by_id
+from ..match_service import get_matches, get_match_by_id, get_today_str
 
 router = APIRouter()
 
@@ -22,7 +22,7 @@ def list_matches(
 
 @router.get("/today", response_model=list[MatchResponse])
 def list_today_matches(db: Session = Depends(get_db)):
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = get_today_str()
     matches = [m for m in get_matches(db) if m["match_date"] == today]
     return [MatchResponse.model_validate(m) for m in matches]
 
