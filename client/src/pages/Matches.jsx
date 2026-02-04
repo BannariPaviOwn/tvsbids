@@ -118,7 +118,11 @@ export function Matches() {
       ) : (
         <div className="match-list">
           {dateFiltered.length === 0 ? (
-            <p className="no-matches">No matches found{series !== 'all' ? ` for ${series}` : ''}.</p>
+            <p className="no-matches">
+              {filter === 'today'
+                ? "No matches scheduled for today. Try 'All Matches' to see the full schedule."
+                : `No matches found${series !== 'all' ? ` for ${series}` : ''}.`}
+            </p>
           ) : (
             dateFiltered.map((match) => (
               <MatchCard

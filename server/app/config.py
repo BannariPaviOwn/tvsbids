@@ -29,7 +29,11 @@ class Settings(BaseSettings):
         return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
 
     class Config:
-        env_file = ".env"
+        env_file = (
+            ".env.local"
+            if (__import__("pathlib").Path(__file__).resolve().parent.parent / ".env.local").exists()
+            else ".env"
+        )
 
 
 settings = Settings()

@@ -40,9 +40,24 @@ export async function register(username, password, mobileNumber) {
   return res.json();
 }
 
+const FETCH_TIMEOUT_MS = 15000; // 15s - Render free tier can take 30-60s to cold start
+
+async function fetchWithTimeout(url, options = {}) {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const res = await fetch(url, { ...options, signal: ctrl.signal });
+    clearTimeout(id);
+    return res;
+  } catch (e) {
+    clearTimeout(id);
+    throw e;
+  }
+}
+
 export async function getMatches(series) {
   const url = series ? `${API_BASE}/matches/?series=${encodeURIComponent(series)}` : `${API_BASE}/matches/`;
-  const res = await fetch(url, { headers: getHeaders() });
+  const res = await fetchWithTimeout(url, { headers: getHeaders() });
   if (!res.ok) throw new Error('Failed to fetch matches');
   return res.json();
 }
@@ -54,7 +69,7 @@ export async function getTodayMatches() {
 }
 
 export async function getBidStats() {
-  const res = await fetch(`${API_BASE}/users/bid-stats`, { headers: getHeaders() });
+  const res = await fetchWithTimeout(`${API_BASE}/users/bid-stats`, { headers: getHeaders() });
   if (!res.ok) throw new Error('Failed to fetch bid stats');
   return res.json();
 }
