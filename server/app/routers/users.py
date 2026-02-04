@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import User, Bid, MatchResult
-from ..match_data import get_match_type, get_match_by_id, get_match_team_ids
+from ..match_service import get_match_type, get_match_by_id, get_match_team_ids
 from ..schemas import UserResponse, UserBidStats, UserDashboardStats, LeaderboardEntry, UserListEntry, UserDeactivate, MatchSetResult
 from ..auth import get_current_user
 from ..config import settings
@@ -35,10 +35,12 @@ def get_dashboard_stats(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    db.refresh(current_user)  # Ensure cached stats are current
+    total = current_user.total_bids or 0
+    wins = current_user.wins or 0
+    losses = current_user.losses or 0
+    # Pending = bids not yet settled (placed, pending); no_result counts as settled
     bids = db.query(Bid).filter(Bid.user_id == current_user.id).all()
-    total = len(bids)
-    wins = sum(1 for b in bids if b.bid_status == "won")
-    losses = sum(1 for b in bids if b.bid_status == "lost")
     pending = sum(1 for b in bids if b.bid_status in ("placed", "pending"))
     return UserDashboardStats(
         total_matches=total,
@@ -54,9 +56,9 @@ def get_bid_stats(
     db: Session = Depends(get_db)
 ):
     bids = db.query(Bid).filter(Bid.user_id == current_user.id).all()
-    league_used = sum(1 for b in bids if get_match_type(b.match_id) == "league")
-    semi_used = sum(1 for b in bids if get_match_type(b.match_id) == "semi")
-    final_used = sum(1 for b in bids if get_match_type(b.match_id) == "final")
+    league_used = sum(1 for b in bids if get_match_type(db, b.match_id) == "league")
+    semi_used = sum(1 for b in bids if get_match_type(db, b.match_id) == "semi")
+    final_used = sum(1 for b in bids if get_match_type(db, b.match_id) == "final")
 
     return UserBidStats(
         league_used=league_used,
@@ -76,15 +78,16 @@ def get_leaderboard(
     db: Session = Depends(get_db),
     _=Depends(get_current_user)
 ):
-    """Leaderboard: users ranked by net amount (Rs). Amount: green if positive, red if negative."""
+    """Leaderboard: users ranked by net amount (Rs). Admin users excluded. Uses cached stats."""
     users = db.query(User).filter(User.is_active == 1).all()
+    admin_set = set(settings.admin_usernames_list)
+    users = [u for u in users if u.username.lower() not in admin_set]
     rows = []
     for u in users:
-        bids = db.query(Bid).filter(Bid.user_id == u.id).all()
-        wins = sum(1 for b in bids if b.bid_status == "won")
-        losses = sum(1 for b in bids if b.bid_status == "lost")
-        total = len(bids)
-        amount_won = sum(b.amount_won or 0 for b in bids)
+        total = u.total_bids or 0
+        wins = u.wins or 0
+        losses = u.losses or 0
+        amount_won = u.amount_won or 0
         rows.append({"user": u, "wins": wins, "losses": losses, "total": total, "amount_won": amount_won})
     rows.sort(key=lambda x: (-x["amount_won"], -x["wins"]))
     return [
@@ -147,7 +150,7 @@ def admin_confirm_match_result(
     """Admin confirms match result. winner_team_id=None means rain/no result (no deduction)."""
     if current_user.username.lower() not in settings.admin_usernames_list:
         raise HTTPException(status_code=403, detail="Admin access required")
-    match = get_match_by_id(match_id)
+    match = get_match_by_id(db, match_id)
     if not match:
         raise HTTPException(status_code=404, detail="Match not found")
     # Check already confirmed
@@ -169,18 +172,19 @@ def admin_confirm_match_result(
     else:
         winners = [b for b in bids if b.selected_team_id == winner_team_id]
         losers = [b for b in bids if b.selected_team_id != winner_team_id]
+        # Total from losers = number of losers × bid_amount; each winner gets pot / num_winners
         pot = len(losers) * bid_amount
+        share = pot // len(winners) if winners else 0
         for b in losers:
             b.bid_status = "lost"
             b.amount_won = -bid_amount
-        if winners:
-            share = pot // len(winners)
-            for b in winners:
-                b.bid_status = "won"
-                b.amount_won = share - bid_amount  # Net profit
-        else:
-            # No winners: losers get refund? Or pot goes to... For now, losers still lose.
-            pass
+            b.user.losses = (b.user.losses or 0) + 1
+            b.user.amount_won = (b.user.amount_won or 0) - bid_amount
+        for b in winners:
+            b.bid_status = "won"
+            b.amount_won = share
+            b.user.wins = (b.user.wins or 0) + 1
+            b.user.amount_won = (b.user.amount_won or 0) + share
     db.add(MatchResult(match_id=match_id, winner_team_id=winner_team_id))
     db.commit()
     return {"ok": True, "match_id": match_id, "winner_team_id": winner_team_id}

@@ -27,6 +27,11 @@ class User(Base):
     mobile_number = Column(String(15), unique=True, index=True, nullable=True)  # One account per mobile
     is_active = Column(Integer, default=1, nullable=False)  # 1=active, 0=deactivated
     created_at = Column(DateTime, default=datetime.utcnow)
+    # Cached stats (updated on bid place + match result confirm)
+    total_bids = Column(Integer, default=0, nullable=False)
+    wins = Column(Integer, default=0, nullable=False)
+    losses = Column(Integer, default=0, nullable=False)
+    amount_won = Column(Integer, default=0, nullable=False)  # Net Rs: +profit, -loss
 
     bids = relationship("Bid", back_populates="user")
 

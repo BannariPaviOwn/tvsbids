@@ -1,4 +1,4 @@
-"""Seed users and teams only. Matches come from app.match_data (no DB storage)."""
+"""Seed users and teams only. Matches are loaded from DB (manually uploaded)."""
 import os
 import sys
 
@@ -35,4 +35,4 @@ for t in TEAMS_DATA:
 
 db.commit()
 db.close()
-print("Seed data created successfully (users + teams). Matches from match_data.py.")
+print("Seed data created successfully (users + teams). Matches loaded from DB.")

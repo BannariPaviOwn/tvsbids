@@ -6,7 +6,7 @@ from ..models import User, Bid
 from ..schemas import BidCreate, BidResponse
 from ..auth import get_current_user
 from ..config import settings
-from ..match_data import get_match_by_id, get_match_type, get_match_team_ids
+from ..match_service import get_match_by_id, get_match_type, get_match_team_ids
 
 router = APIRouter()
 
@@ -23,7 +23,7 @@ def _get_bid_limit(match_type: str) -> int:
 
 def _get_user_bid_count_for_type(db: Session, user_id: int, match_type: str) -> int:
     bids = db.query(Bid).filter(Bid.user_id == user_id).all()
-    return sum(1 for b in bids if get_match_type(b.match_id) == match_type)
+    return sum(1 for b in bids if get_match_type(db, b.match_id) == match_type)
 
 
 @router.post("/", response_model=BidResponse)
@@ -32,7 +32,7 @@ def place_bid(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ) -> BidResponse:
-    match = get_match_by_id(bid_data.match_id)
+    match = get_match_by_id(db, bid_data.match_id)
     if not match:
         raise HTTPException(status_code=404, detail="Match not found")
 
@@ -42,7 +42,7 @@ def place_bid(
             detail="Match has started. Bidding is closed."
         )
 
-    team_ids = get_match_team_ids(bid_data.match_id)
+    team_ids = get_match_team_ids(db, bid_data.match_id)
     if not team_ids or bid_data.selected_team_id not in team_ids:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -64,7 +64,7 @@ def place_bid(
         return BidResponse.model_validate(existing)
 
     # New bid: enforce per-stage bid limits
-    mtype = get_match_type(bid_data.match_id)
+    mtype = get_match_type(db, bid_data.match_id)
     used = _get_user_bid_count_for_type(db, current_user.id, mtype)
     limit = _get_bid_limit(mtype)
     if used >= limit:
@@ -80,6 +80,7 @@ def place_bid(
         bid_status="placed"
     )
     db.add(bid)
+    current_user.total_bids = (current_user.total_bids or 0) + 1
     db.commit()
     db.refresh(bid)
     return BidResponse.model_validate(bid)

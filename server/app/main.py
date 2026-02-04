@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
-from .database import engine, Base, get_db, is_postgres
+from .database import engine, Base, get_db, is_postgres, SessionLocal
 from .models import User, Team, Bid, MatchResult
 from .routers import auth, matches, bids, users
 from .config import settings
@@ -57,6 +57,39 @@ try:
         conn.execute(text("ALTER TABLE users ADD COLUMN is_active INTEGER DEFAULT 1"))
 except Exception:
     pass
+
+# Migration: add cached stats columns to users (total_bids, wins, losses, amount_won)
+for col, default in [
+    ("total_bids", "0"),
+    ("wins", "0"),
+    ("losses", "0"),
+    ("amount_won", "0"),
+]:
+    try:
+        with engine.begin() as conn:
+            conn.execute(text(f"ALTER TABLE users ADD COLUMN {col} INTEGER DEFAULT {default}"))
+    except Exception:
+        pass
+
+
+def _backfill_user_stats():
+    """Recalculate total_bids, wins, losses, amount_won from bids for all users."""
+    from .models import User, Bid
+    db = SessionLocal()
+    try:
+        users = db.query(User).all()
+        for u in users:
+            bids = db.query(Bid).filter(Bid.user_id == u.id).all()
+            u.total_bids = len(bids)
+            u.wins = sum(1 for b in bids if b.bid_status == "won")
+            u.losses = sum(1 for b in bids if b.bid_status == "lost")
+            u.amount_won = sum(b.amount_won or 0 for b in bids)
+        db.commit()
+    finally:
+        db.close()
+
+
+_backfill_user_stats()
 
 app = FastAPI(
     title="TVS-Bids",

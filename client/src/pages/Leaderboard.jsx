@@ -58,6 +58,7 @@ export function Leaderboard() {
         {loading ? (
           <p className="loading">Loading...</p>
         ) : (
+          <div className="leaderboard-table-wrapper">
           <div className="leaderboard-table">
             <div className="leaderboard-header">
               <span className="col-rank">#</span>
@@ -90,6 +91,7 @@ export function Leaderboard() {
                 </div>
               ))
             )}
+          </div>
           </div>
         )}
       </section>

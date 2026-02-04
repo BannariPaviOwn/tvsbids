@@ -717,32 +717,40 @@ body {
   color: var(--text-muted);
 }
 
+.leaderboard-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -0.5rem;
+  padding: 0 0.5rem;
+}
+
 .leaderboard-table {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
+  min-width: 320px;
 }
 
 .leaderboard-header {
   display: grid;
-  grid-template-columns: 50px 1fr 60px 60px 60px 90px;
-  gap: 1rem;
-  padding: 0.75rem 1.25rem;
+  grid-template-columns: 40px minmax(60px, 1fr) 45px 45px 45px minmax(70px, 1fr);
+  gap: 0.5rem 0.75rem;
+  padding: 0.75rem 1rem;
   background: rgba(0, 0, 0, 0.3);
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
 }
 
 .leaderboard-row {
   display: grid;
-  grid-template-columns: 50px 1fr 60px 60px 60px 90px;
-  gap: 1rem;
-  padding: 0.9rem 1.25rem;
+  grid-template-columns: 40px minmax(60px, 1fr) 45px 45px 45px minmax(70px, 1fr);
+  gap: 0.5rem 0.75rem;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border);
   align-items: center;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 .leaderboard-row:last-child {
@@ -781,6 +789,51 @@ body {
 .leaderboard-row .col-amount.amount-negative {
   color: var(--danger);
   font-weight: 700;
+}
+
+/* Mobile: leaderboard & nav */
+@media (max-width: 480px) {
+  .dashboard-page,
+  .matches-page,
+  .leaderboard-page,
+  .admin-page {
+    padding: 1rem 0.75rem;
+  }
+
+  .dashboard-header h1 {
+    font-size: 1.2rem;
+  }
+
+  .main-nav {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .main-nav .nav-link {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+  }
+
+  .leaderboard-subtitle {
+    font-size: 0.8rem;
+    line-height: 1.35;
+  }
+
+  .leaderboard-header,
+  .leaderboard-row {
+    grid-template-columns: 36px minmax(50px, 1fr) 40px 40px 40px minmax(65px, 1fr);
+    gap: 0.4rem 0.5rem;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .leaderboard-header {
+    font-size: 0.75rem;
+  }
+
+  .col-amount {
+    white-space: nowrap;
+  }
 }
 
 /* Match card */

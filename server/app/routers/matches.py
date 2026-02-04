@@ -6,7 +6,7 @@ from ..database import get_db
 from ..models import Team, Bid, User, MatchResult
 from ..schemas import MatchResponse, TeamResponse, MatchBidBreakdown, BidderInfo
 from ..auth import get_current_user
-from ..match_data import get_matches, get_match_by_id
+from ..match_service import get_matches, get_match_by_id
 
 router = APIRouter()
 
@@ -16,17 +16,14 @@ def list_matches(
     series: str | None = Query(None, description="Filter by series: ipl, worldcup, etc."),
     db: Session = Depends(get_db),
 ):
-    matches = get_matches(series)
-    results = {r.match_id: r.winner_team_id for r in db.query(MatchResult).all()}
-    for m in matches:
-        m["winner_team_id"] = results.get(m["id"])
+    matches = get_matches(db, series)
     return [MatchResponse.model_validate(m) for m in matches]
 
 
 @router.get("/today", response_model=list[MatchResponse])
-def list_today_matches():
+def list_today_matches(db: Session = Depends(get_db)):
     today = datetime.now().strftime("%Y-%m-%d")
-    matches = [m for m in get_matches() if m["match_date"] == today]
+    matches = [m for m in get_matches(db) if m["match_date"] == today]
     return [MatchResponse.model_validate(m) for m in matches]
 
 
@@ -41,7 +38,7 @@ def get_match_bid_breakdown(
     db: Session = Depends(get_db),
     _=Depends(get_current_user)
 ):
-    match = get_match_by_id(match_id)
+    match = get_match_by_id(db, match_id)
     if not match:
         raise HTTPException(status_code=404, detail="Match not found")
     result = db.query(MatchResult).filter(MatchResult.match_id == match_id).first()
