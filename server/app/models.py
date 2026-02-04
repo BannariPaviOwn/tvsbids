@@ -57,7 +57,6 @@ class Match(Base):
     team1 = relationship("Team", foreign_keys=[team1_id])
     team2 = relationship("Team", foreign_keys=[team2_id])
     winner = relationship("Team", foreign_keys=[winner_team_id])
-    bids = relationship("Bid", back_populates="match")
 
 
 class Bid(Base):
@@ -65,12 +64,11 @@ class Bid(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    match_id = Column(Integer, ForeignKey("matches.id"), nullable=False)
+    match_id = Column(Integer, nullable=False)  # References match_data by id (1-based)
     selected_team_id = Column(Integer, ForeignKey("teams.id"), nullable=True)  # None = missed bid
     bid_status = Column(String(20), default="pending")  # pending, placed, missed, won, lost
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     user = relationship("User", back_populates="bids")
-    match = relationship("Match", back_populates="bids")
     selected_team = relationship("Team", foreign_keys=[selected_team_id])

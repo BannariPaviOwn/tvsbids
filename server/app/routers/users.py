@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import User, Bid, Match
+from ..models import User, Bid
+from ..match_data import get_match_type
 from ..schemas import UserResponse, UserBidStats, UserDashboardStats, LeaderboardEntry, UserListEntry, UserDeactivate
 from ..auth import get_current_user
 from ..config import settings
@@ -45,12 +46,9 @@ def get_bid_stats(
     db: Session = Depends(get_db)
 ):
     bids = db.query(Bid).filter(Bid.user_id == current_user.id).all()
-    match_ids = [b.match_id for b in bids]
-    matches = db.query(Match).filter(Match.id.in_(match_ids)).all() if match_ids else []
-
-    league_used = sum(1 for m in matches if m.match_type == "league")
-    semi_used = sum(1 for m in matches if m.match_type == "semi")
-    final_used = sum(1 for m in matches if m.match_type == "final")
+    league_used = sum(1 for b in bids if get_match_type(b.match_id) == "league")
+    semi_used = sum(1 for b in bids if get_match_type(b.match_id) == "semi")
+    final_used = sum(1 for b in bids if get_match_type(b.match_id) == "final")
 
     return UserBidStats(
         league_used=league_used,

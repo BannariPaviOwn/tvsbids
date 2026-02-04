@@ -2,8 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
-from .database import engine, Base, get_db
-from .models import User, Team, Match, Bid
+from .database import engine, Base, get_db, is_postgres
+from .models import User, Team, Bid
 from .routers import auth, matches, bids, users
 from .config import settings
 
@@ -30,6 +30,14 @@ try:
         conn.execute(text("ALTER TABLE matches ADD COLUMN series VARCHAR(30) DEFAULT 'worldcup'"))
 except Exception:
     pass  # Column may already exist
+
+# Migration: drop bids.match_id FK for PostgreSQL (matches now from match_data)
+if is_postgres:
+    try:
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE bids DROP CONSTRAINT IF EXISTS bids_match_id_fkey"))
+    except Exception:
+        pass
 
 # Migration: add mobile_number, is_active to users
 try:

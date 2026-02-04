@@ -1,13 +1,12 @@
-from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import User, Bid, Match
-from ..schemas import BidCreate, BidResponse, UserBidStats
+from ..models import User, Bid
+from ..schemas import BidCreate, BidResponse
 from ..auth import get_current_user
 from ..config import settings
-from ..routers.matches import _is_match_locked
+from ..match_data import get_match_by_id, get_match_type, get_match_team_ids
 
 router = APIRouter()
 
@@ -24,11 +23,7 @@ def _get_bid_limit(match_type: str) -> int:
 
 def _get_user_bid_count_for_type(db: Session, user_id: int, match_type: str) -> int:
     bids = db.query(Bid).filter(Bid.user_id == user_id).all()
-    match_ids = [b.match_id for b in bids]
-    if not match_ids:
-        return 0
-    matches = db.query(Match).filter(Match.id.in_(match_ids), Match.match_type == match_type).all()
-    return len(matches)
+    return sum(1 for b in bids if get_match_type(b.match_id) == match_type)
 
 
 @router.post("/", response_model=BidResponse)
@@ -37,17 +32,18 @@ def place_bid(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ) -> BidResponse:
-    match = db.query(Match).filter(Match.id == bid_data.match_id).first()
+    match = get_match_by_id(bid_data.match_id)
     if not match:
         raise HTTPException(status_code=404, detail="Match not found")
 
-    if _is_match_locked(match):
+    if match["is_locked"]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Match has started. Bidding is closed."
         )
 
-    if bid_data.selected_team_id not in [match.team1_id, match.team2_id]:
+    team_ids = get_match_team_ids(bid_data.match_id)
+    if not team_ids or bid_data.selected_team_id not in team_ids:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid team selection"
@@ -68,8 +64,9 @@ def place_bid(
         return BidResponse.model_validate(existing)
 
     # New bid: enforce per-stage bid limits
-    used = _get_user_bid_count_for_type(db, current_user.id, match.match_type)
-    limit = _get_bid_limit(match.match_type)
+    mtype = get_match_type(bid_data.match_id)
+    used = _get_user_bid_count_for_type(db, current_user.id, mtype)
+    limit = _get_bid_limit(mtype)
     if used >= limit:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
