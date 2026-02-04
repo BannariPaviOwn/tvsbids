@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     # Admin usernames (comma-separated in env, or default "admin")
     ADMIN_USERNAMES: str = "admin"
 
+    # Timezone for match times (e.g. Asia/Kolkata for India). Match date/time in DB are in this zone.
+    MATCH_TIMEZONE: str = "Asia/Kolkata"
+
     @property
     def admin_usernames_list(self) -> list[str]:
         return [u.strip().lower() for u in self.ADMIN_USERNAMES.split(",") if u.strip()]

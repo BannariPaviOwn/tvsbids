@@ -1,24 +1,34 @@
 """Match operations using database. Replaces match_data for runtime match queries."""
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from sqlalchemy.orm import Session, joinedload
 
 from .models import Match, MatchResult
+from .config import settings
+
+
+def _parse_match_datetime(match_date: str, match_time: str):
+    """Parse match date/time as naive datetime in MATCH_TIMEZONE, return timezone-aware UTC."""
+    match_dt = datetime.strptime(f"{match_date} {match_time}", "%Y-%m-%d %H:%M")
+    tz = ZoneInfo(settings.MATCH_TIMEZONE)
+    return match_dt.replace(tzinfo=tz).astimezone(ZoneInfo("UTC"))
 
 
 def _is_match_locked(match_date: str, match_time: str) -> bool:
     try:
-        match_dt = datetime.strptime(f"{match_date} {match_time}", "%Y-%m-%d %H:%M")
-        return datetime.now() >= match_dt
-    except ValueError:
+        match_dt_utc = _parse_match_datetime(match_date, match_time)
+        return datetime.now(ZoneInfo("UTC")) >= match_dt_utc
+    except (ValueError, Exception):
         return False
 
 
 def _seconds_until_start(match_date: str, match_time: str) -> int | None:
     try:
-        match_dt = datetime.strptime(f"{match_date} {match_time}", "%Y-%m-%d %H:%M")
-        delta = (match_dt - datetime.now()).total_seconds()
+        match_dt_utc = _parse_match_datetime(match_date, match_time)
+        now_utc = datetime.now(ZoneInfo("UTC"))
+        delta = (match_dt_utc - now_utc).total_seconds()
         return max(0, int(delta)) if delta > 0 else None
-    except ValueError:
+    except (ValueError, Exception):
         return None
 
 

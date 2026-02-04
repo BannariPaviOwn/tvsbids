@@ -59,7 +59,6 @@ export function Admin() {
     setError('');
     try {
       await adminConfirmMatchResult(matchId, winnerId === null || winnerId === 0 ? null : winnerId);
-      await adminConfirmMatchResult(matchId, winnerId === null || winnerId === 0 ? null : winnerId);
       setResults((prev) => ({ ...prev, [matchId]: winnerId === null || winnerId === 0 ? null : winnerId }));
       setSelectedWinner((prev) => {
         const next = { ...prev };
@@ -168,7 +167,7 @@ export function Admin() {
                         <span className="match-teams">
                           {match.team1.short_name} vs {match.team2.short_name}
                           <span className="match-type-badge">{match.match_type}</span>
-                          <span className="match-amount">₹{bidAmounts[match.match_type] ?? 50}</span>
+                          <span className="match-amount">₹{bidAmounts[match.match_type?.toLowerCase()] ?? bidAmounts.league ?? 50}</span>
                         </span>
                         <span className="match-meta">
                           {match.match_date} {match.match_time} • {match.venue}
