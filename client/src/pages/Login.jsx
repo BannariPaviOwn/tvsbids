@@ -25,7 +25,7 @@ export function Login() {
     try {
       const data = await login(username.trim(), password);
       authLogin(data);
-      window.location.href = '/';
+      window.location.href = '/dashboard';
     } catch (e) {
       setError(e.message || 'Login failed');
     } finally {

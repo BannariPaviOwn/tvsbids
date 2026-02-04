@@ -1,9 +1,22 @@
-"""Seed teams, sample matches, and leaderboard players. Run: python -m seed_data"""
+"""Seed teams, sample matches, and leaderboard players.
+Run: python -m seed_data
+For local SQLite (when Neon unreachable): python -m seed_data --local
+"""
+import os
+import sys
 from datetime import datetime, timedelta
+
+# Support --local to use SQLite (must run BEFORE importing app.database)
+if "--local" in sys.argv:
+    os.environ["DATABASE_URL"] = ""
+
 from app.database import SessionLocal, engine
 from app.models import Base, Team, Match, User
 from app.auth import get_password_hash
 
+# With --local, drop and recreate for a fresh schema (e.g. after model changes)
+if "--local" in sys.argv:
+    Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)
 db = SessionLocal()
 
@@ -15,18 +28,28 @@ for i, uname in enumerate(LEADERBOARD_USERS):
         db.add(User(username=uname, hashed_password=get_password_hash("bid123"), mobile_number=mobile))
 db.commit()
 
-# Teams
+# Teams - World Cup participants (India & Sri Lanka hosts)
 teams_data = [
     {"name": "India", "short_name": "IND"},
-    {"name": "Australia", "short_name": "AUS"},
-    {"name": "England", "short_name": "ENG"},
     {"name": "Pakistan", "short_name": "PAK"},
-    {"name": "South Africa", "short_name": "SA"},
-    {"name": "New Zealand", "short_name": "NZ"},
-    {"name": "West Indies", "short_name": "WI"},
     {"name": "Sri Lanka", "short_name": "SL"},
-    {"name": "Bangladesh", "short_name": "BAN"},
+    {"name": "Scotland", "short_name": "SCO"},
     {"name": "Afghanistan", "short_name": "AFG"},
+    {"name": "UAE", "short_name": "UAE"},
+    {"name": "Oman", "short_name": "OMA"},
+    {"name": "West Indies", "short_name": "WI"},
+    {"name": "USA", "short_name": "USA"},
+    {"name": "Canada", "short_name": "CAN"},
+    {"name": "Australia", "short_name": "AUS"},
+    {"name": "New Zealand", "short_name": "NZ"},
+    {"name": "South Africa", "short_name": "SA"},
+    {"name": "Namibia", "short_name": "NAM"},
+    {"name": "Zimbabwe", "short_name": "ZIM"},
+    {"name": "Ireland", "short_name": "IRE"},
+    {"name": "England", "short_name": "ENG"},
+    {"name": "Netherlands", "short_name": "NED"},
+    {"name": "Italy", "short_name": "ITA"},
+    {"name": "Nepal", "short_name": "NEP"},
 ]
 
 for t in teams_data:
@@ -45,7 +68,7 @@ sample_matches = [
     ("AFG", "NZ", "league", 0, "15:30", "Eden Gardens, Kolkata", "worldcup"),
     ("ENG", "PAK", "league", 1, "19:00", "Chinnaswamy Stadium, Bengaluru", "worldcup"),
     ("SA", "WI", "league", 1, "14:00", "MA Chidambaram Stadium, Chennai", "worldcup"),
-    ("SL", "BAN", "league", 2, "15:30", "Arun Jaitley Stadium, Delhi", "worldcup"),
+    ("SL", "NEP", "league", 2, "15:30", "Arun Jaitley Stadium, Delhi", "worldcup"),
     ("IND", "ENG", "league", 2, "19:00", "Narendra Modi Stadium, Ahmedabad", "worldcup"),
     ("AUS", "AFG", "league", 3, "14:00", "Wankhede Stadium, Mumbai", "worldcup"),
     ("NZ", "PAK", "semi", 4, "14:00", "Eden Gardens, Kolkata", "worldcup"),

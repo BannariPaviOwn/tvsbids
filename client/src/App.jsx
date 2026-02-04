@@ -18,7 +18,7 @@ function AdminRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="app-loading">Loading...</div>;
   if (!user) return <Navigate to="/login" replace />;
-  if (!user.is_admin) return <Navigate to="/" replace />;
+  if (!user.is_admin) return <Navigate to="/dashboard" replace />;
   return children;
 }
 
@@ -29,8 +29,9 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route
-            path="/"
+            path="/dashboard"
             element={
               <ProtectedRoute>
                 <Dashboard />
@@ -61,7 +62,7 @@ function App() {
               </AdminRoute>
             }
           />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

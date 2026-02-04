@@ -3,15 +3,25 @@
 const FLAG_BASE = 'https://flagcdn.com/w40';
 const TEAM_FLAGS = {
   IND: 'in',
-  AUS: 'au',
-  ENG: 'gb',
   PAK: 'pk',
-  SA: 'za',
-  NZ: 'nz',
-  WI: null,   // Custom West Indies cricket logo
   SL: 'lk',
-  BAN: 'bd',
+  SCO: 'gb',   // Scotland (UK)
   AFG: 'af',
+  UAE: 'ae',
+  OMA: 'om',
+  WI: null,    // Custom West Indies cricket logo
+  USA: 'us',
+  CAN: 'ca',
+  AUS: 'au',
+  NZ: 'nz',
+  SA: 'za',
+  NAM: 'na',
+  ZIM: 'zw',
+  IRE: 'ie',
+  ENG: 'gb',
+  NED: 'nl',
+  ITA: 'it',
+  NEP: 'np',
 };
 
 export function getTeamFlagUrl(shortName) {

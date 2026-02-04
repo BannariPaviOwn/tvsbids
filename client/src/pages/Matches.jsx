@@ -66,7 +66,7 @@ export function Matches() {
       </header>
 
       <nav className="main-nav">
-        <Link to="/" className="nav-link">Dashboard</Link>
+        <Link to="/dashboard" className="nav-link">Dashboard</Link>
         <Link to="/matches" className="nav-link active">Matches</Link>
         <Link to="/leaderboard" className="nav-link">Leaderboard</Link>
         {user?.is_admin && <Link to="/admin" className="nav-link">Admin</Link>}

@@ -40,11 +40,11 @@ export function Admin() {
       </header>
 
       <nav className="main-nav">
-        <Link to="/" className="nav-link">Dashboard</Link>
+        <Link to="/dashboard" className="nav-link">Dashboard</Link>
         <Link to="/matches" className="nav-link">Matches</Link>
         <Link to="/leaderboard" className="nav-link">Leaderboard</Link>
         <Link to="/admin" className="nav-link active">Admin</Link>
-        <Link to="/" className="nav-link">Back to App</Link>
+        <Link to="/dashboard" className="nav-link">Back to App</Link>
       </nav>
 
       <section className="admin-section">

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { register } from '../api';
-import { useAuth } from '../context/AuthContext';
 
 function normalizeMobile(val) {
   return val.replace(/\D/g, '');
@@ -18,7 +17,6 @@ export function Register() {
   const [mobile, setMobile] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login: authLogin } = useAuth();
 
   const handleMobileChange = (e) => {
     const v = e.target.value.replace(/\D/g, '').slice(0, 10);
@@ -50,9 +48,8 @@ export function Register() {
     }
     setLoading(true);
     try {
-      const data = await register(username.trim(), password, mobile);
-      authLogin(data);
-      window.location.href = '/';
+      await register(username.trim(), password, mobile);
+      window.location.href = '/login';
     } catch (e) {
       setError(e.message || 'Registration failed');
     } finally {
