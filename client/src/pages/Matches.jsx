@@ -18,7 +18,7 @@ export function Matches() {
   const fetchMatches = (seriesFilter) => {
     const s = seriesFilter === 'all' ? null : seriesFilter;
     return getMatches(s)
-      .then((m) => (m?.length > 0 ? m : getSampleMatches(s)))
+      .then((m) => (Array.isArray(m) && m.length > 0 ? m : getSampleMatches(s)))
       .catch(() => getSampleMatches(s));
   };
 

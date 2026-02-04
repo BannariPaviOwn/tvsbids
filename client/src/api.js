@@ -59,7 +59,8 @@ export async function getMatches(series) {
   const url = series ? `${API_BASE}/matches/?series=${encodeURIComponent(series)}` : `${API_BASE}/matches/`;
   const res = await fetchWithTimeout(url, { headers: getHeaders() });
   if (!res.ok) throw new Error('Failed to fetch matches');
-  return res.json();
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
 }
 
 export async function getTodayMatches() {

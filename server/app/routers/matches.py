@@ -49,7 +49,6 @@ def _match_to_response(match: Match) -> MatchResponse:
 def list_matches(
     series: str | None = Query(None, description="Filter by series: ipl, worldcup, etc."),
     db: Session = Depends(get_db),
-    _=Depends(get_current_user)
 ):
     q = db.query(Match).order_by(Match.match_date, Match.match_time)
     if series:
@@ -62,10 +61,7 @@ def list_matches(
 
 
 @router.get("/today", response_model=list[MatchResponse])
-def list_today_matches(
-    db: Session = Depends(get_db),
-    _=Depends(get_current_user)
-):
+def list_today_matches(db: Session = Depends(get_db)):
     today = datetime.now().strftime("%Y-%m-%d")
     matches = db.query(Match).filter(Match.match_date == today).order_by(Match.match_time).all()
     return [_match_to_response(m) for m in matches]
